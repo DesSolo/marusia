@@ -46,6 +46,11 @@ func (r *Request) OriginalUtterance() string {
 
 }
 
+// IsNewSession ...
+func (r *Request) IsNewSession() bool {
+	return r.Session.New
+}
+
 // CardType ...
 type CardType string
 
