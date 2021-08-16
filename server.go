@@ -45,39 +45,40 @@ func (s *Skill) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf(`%s %s "%s %s" "%s"`, r.Host, r.RemoteAddr, r.Method, r.URL, r.UserAgent())
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Println("fault decode response body err:", err)
-		http.Error(w, "500 - internal server error", http.StatusInternalServerError)
+		log.Printf("fault decode response body err: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	var clientRequest = Request{}
-	if err := json.Unmarshal(body, &clientRequest); err != nil {
-		log.Println("fault parsing response to struct err:", err)
-		http.Error(w, "500 - internal server error", http.StatusInternalServerError)
+	var cr Request
+	if err := json.Unmarshal(body, &cr); err != nil {
+		log.Printf("fault parsing response to struct err: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	call := strings.ToLower(clientRequest.OriginalUtterance())
+	call := strings.ToLower(cr.OriginalUtterance())
 	df, err := s.dialogRouter.Select(call)
 	if err != nil {
-		log.Println("fault get dialog function err:", err)
-		http.Error(w, "500 - internal server error", http.StatusInternalServerError)
+		log.Printf("fault get dialog function err: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	var serverResponse = Response{}
-	serverResponse.LoadSession(&clientRequest)
-	df(&serverResponse, &clientRequest)
+	var sr Response
+	sr.LoadSession(&cr)
+	
+	resp := df(&cr)
 
-	data, err := json.Marshal(serverResponse)
+	data, err := json.Marshal(resp)
 	if err != nil {
-		log.Println("fault create json response err:", err)
+		log.Printf("fault create json response err: %s", err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if _, err := w.Write(data); err != nil {
-		log.Println("fault sending client response err:", err)
+		log.Printf("fault sending client response err: %s", err)
 	}
 
 }

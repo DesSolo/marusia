@@ -6,7 +6,7 @@ import (
 )
 
 // HandlerFunc ...
-type HandlerFunc func(resp *Response, req *Request) *Response
+type HandlerFunc func(req *Request) *Response
 
 // DialogRouter ...
 type DialogRouter struct {
