@@ -1,12 +1,13 @@
 package marusia
 
 import (
+	"context"
 	"fmt"
 	"strings"
 )
 
 // HandlerFunc ...
-type HandlerFunc func(req *Request, resp *Response)
+type HandlerFunc func(*Request, *Response, context.Context)
 
 // DialogRouter ...
 type DialogRouter struct {

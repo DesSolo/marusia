@@ -1,6 +1,7 @@
 package marusia
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -68,7 +69,7 @@ func (s *Skill) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var resp Response
 	resp.LoadSession(&req)
 
-	df(&req, &resp)
+	df(&req, &resp, context.Background())
 
 	data, err := json.Marshal(resp)
 	if err != nil {
