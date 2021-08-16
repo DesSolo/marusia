@@ -50,14 +50,14 @@ func (s *Skill) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cr Request
-	if err := json.Unmarshal(body, &cr); err != nil {
+	var req Request
+	if err := json.Unmarshal(body, &req); err != nil {
 		log.Printf("fault parsing response to struct err: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	call := strings.ToLower(cr.OriginalUtterance())
+	call := strings.ToLower(req.OriginalUtterance())
 	df, err := s.dialogRouter.Select(call)
 	if err != nil {
 		log.Printf("fault get dialog function err: %s", err)
@@ -65,10 +65,10 @@ func (s *Skill) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var sr Response
-	sr.LoadSession(&cr)
-	
-	resp := df(&cr)
+	var resp Response
+	resp.LoadSession(&req)
+
+	df(&req, &resp)
 
 	data, err := json.Marshal(resp)
 	if err != nil {
