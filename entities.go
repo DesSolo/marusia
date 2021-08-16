@@ -56,7 +56,7 @@ const (
 	ItemsList CardType = "ItemsList"
 )
 
-// Response response strucure
+// Response ...
 type Response struct {
 	Response struct {
 		Text string `json:"text"`

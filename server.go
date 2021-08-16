@@ -30,11 +30,11 @@ func NewConfig(useSSL bool, certFile, keyFile, addr, webhookURL string) *Config 
 // Skill ...
 type Skill struct {
 	config       *Config
-	dialogRouter *DiaogRouter
+	dialogRouter *DialogRouter
 }
 
 // NewSkill ...
-func NewSkill(c *Config, dr *DiaogRouter) *Skill {
+func NewSkill(c *Config, dr *DialogRouter) *Skill {
 	return &Skill{
 		config:       c,
 		dialogRouter: dr,
@@ -64,6 +64,7 @@ func (s *Skill) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "500 - internal server error", http.StatusInternalServerError)
 		return
 	}
+
 	var serverResponse = Response{}
 	serverResponse.LoadSession(&clientRequest)
 	df(&serverResponse, &clientRequest)
