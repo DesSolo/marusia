@@ -7,7 +7,6 @@
 package main
 
 import (
-	"log"
 	"github.com/DesSolo/marusia"
 )
 
@@ -19,17 +18,17 @@ func echoHandler(resp *marusia.Response, req *marusia.Request) *marusia.Response
 }
 
 func main() {
-	dr := marusia.NewDiaogRouter(true)
-	dr.RegisterDefault(echoHandler)
+	dr := capsula.NewDiaogRouter(true)
+	dr.RegisterDefault(defaultHandler)
 
-	config := marusia.NewConfig(
+	config := capsula.NewConfig(
 		false,
 		"",
 		"",
 		":9000",
 		"/webhook",
 	)
-	skill := marusia.NewSkill(config, dr)
+	skill := capsula.NewSkill(config, dr)
 	if err := skill.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
