@@ -11,11 +11,10 @@ import (
 	"github.com/DesSolo/marusia"
 )
 
-func echoHandler(resp *marusia.Response, req *marusia.Request) *marusia.Response {
+func echoHandler(req *marusia.Request, resp *marusia.Response, ctx context.Context) {
 	message := req.OriginalUtterance()
 	resp.Text(message)
 	resp.TTS(message)
-	return resp
 }
 
 func main() {
