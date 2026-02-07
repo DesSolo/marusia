@@ -3,18 +3,21 @@
 
 ### Пример
 Простейший скилл - повторение реплик пользователя.
+
 ```golang
 package main
 
 import (
 	"log"
+    "context"
+	
 	"github.com/DesSolo/marusia"
 )
 
-func echoHandler(req *marusia.Request, resp *marusia.Response, ctx context.Context) {
+func echoHandler(_ context.Context, req *marusia.Request, r *marusia.Response) {
 	message := req.OriginalUtterance()
-	resp.Text(message)
-	resp.TTS(message)
+	r.Text(message)
+	r.TTS(message)
 }
 
 func main() {

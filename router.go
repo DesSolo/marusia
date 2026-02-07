@@ -7,7 +7,7 @@ import (
 )
 
 // HandlerFunc ...
-type HandlerFunc func(req *Request, resp *Response, ctx context.Context)
+type HandlerFunc func(ctx context.Context, req *Request, resp *Response)
 
 // DialogRouter ...
 type DialogRouter struct {

@@ -2,14 +2,18 @@ package middlewares
 
 import (
 	"context"
-	"log"
+	"log/slog"
 
 	"github.com/DesSolo/marusia"
 )
 
 func Logging(next marusia.HandlerFunc) marusia.HandlerFunc {
-	return func(req *marusia.Request, resp *marusia.Response, ctx context.Context) {
-		log.Printf("userID: %s text: %s", req.Session.UserID, req.Request.OriginalUtterance)
-		next(req, resp, ctx)
+	return func(ctx context.Context, req *marusia.Request, resp *marusia.Response) {
+		slog.InfoContext(ctx, "user",
+			"userID", req.Session.UserID,
+			"sessionID", req.Session.SessionID,
+		)
+
+		next(ctx, req, resp)
 	}
 }

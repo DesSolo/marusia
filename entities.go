@@ -73,24 +73,24 @@ type Response struct {
 }
 
 // LoadSession prepare respons from request
-func (resp *Response) LoadSession(req *Request) {
-	resp.Session.SessionID = req.Session.SessionID
-	resp.Session.MessageID = req.Session.MessageID
-	resp.Session.UserID = req.Session.UserID
-	resp.Version = req.Version
+func (r *Response) LoadSession(req *Request) {
+	r.Session.SessionID = req.Session.SessionID
+	r.Session.MessageID = req.Session.MessageID
+	r.Session.UserID = req.Session.UserID
+	r.Version = req.Version
 }
 
 // Text ...
-func (resp *Response) Text(s string) {
-	resp.Response.Text = s
+func (r *Response) Text(s string) {
+	r.Response.Text = s
 }
 
 // TTS text to speech
-func (resp *Response) TTS(s string) {
-	resp.Response.TTS = s
+func (r *Response) TTS(s string) {
+	r.Response.TTS = s
 }
 
 // EndSession mark session as ended
-func (resp *Response) EndSession() {
-	resp.Response.EndSession = true
+func (r *Response) EndSession() {
+	r.Response.EndSession = true
 }

@@ -3,8 +3,9 @@ package marusia
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -32,6 +33,7 @@ func NewConfig(useSSL bool, certFile, keyFile, addr, webhookURL string) *Config 
 type Skill struct {
 	config       *Config
 	dialogRouter *DialogRouter
+	logger       *slog.Logger
 }
 
 // NewSkill ...
@@ -39,21 +41,29 @@ func NewSkill(c *Config, dr *DialogRouter) *Skill {
 	return &Skill{
 		config:       c,
 		dialogRouter: dr,
+		logger:       slog.Default(),
 	}
 }
 
 func (s *Skill) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf(`%s %s "%s %s" "%s"`, r.Host, r.RemoteAddr, r.Method, r.URL, r.UserAgent())
-	body, err := ioutil.ReadAll(r.Body)
+	s.logger.Debug("new request",
+		"method", r.Method,
+		"url", r.URL.String(),
+		"host", r.Host,
+		"user_agent", r.UserAgent(),
+	)
+
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("fault decode response body err: %s", err)
+		s.logger.Error("fault decode response body", slog.String("error", err.Error()))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 
 	var req Request
 	if err := json.Unmarshal(body, &req); err != nil {
-		log.Printf("fault parsing response to struct err: %s", err)
+		s.logger.Error("fault parsing response to struct", slog.String("error", err.Error()))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -61,7 +71,7 @@ func (s *Skill) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	call := strings.ToLower(req.OriginalUtterance())
 	df, err := s.dialogRouter.Select(call)
 	if err != nil {
-		log.Printf("fault get dialog function err: %s", err)
+		s.logger.Error("fault get dialog function", slog.String("error", err.Error()))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -69,16 +79,17 @@ func (s *Skill) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var resp Response
 	resp.LoadSession(&req)
 
-	df(&req, &resp, context.Background())
+	df(context.Background(), &req, &resp)
 
 	data, err := json.Marshal(resp)
 	if err != nil {
-		log.Printf("fault create json response err: %s", err)
+		s.logger.Error("fault create json response err", slog.String("error", err.Error()))
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if _, err := w.Write(data); err != nil {
+		s.logger.Error("fault write response err", slog.String("error", err.Error()))
 		log.Printf("fault sending client response err: %s", err)
 	}
 
@@ -86,10 +97,13 @@ func (s *Skill) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // ListenAndServe ...
 func (s *Skill) ListenAndServe() error {
-	log.Printf("starting server config: %+v ...", s.config)
+	s.logger.Info("starting server", slog.Any("config", s.config))
+
 	http.HandleFunc(s.config.webhookURL, corsMiddleware(s.ServeHTTP))
+
 	if !s.config.useSSL {
 		return http.ListenAndServe(s.config.addr, nil)
 	}
+
 	return http.ListenAndServeTLS(s.config.addr, s.config.certFile, s.config.keyFile, nil)
 }
